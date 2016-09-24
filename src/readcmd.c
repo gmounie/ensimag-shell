@@ -118,6 +118,7 @@ static void read_word(char ** cur, char ** cur_buf) {
 		case '<':
 		case '>':
 		case '|':
+		case '&':
 			**cur_buf = '\0';
 			return;
 		case '\'':
@@ -266,6 +267,15 @@ struct cmdline *parsecmd(char **pline)
 				s->err = "filename missing for input redirection";
 				goto error;
 			}
+			switch(words[i][0]){
+			case '<':
+			case '>':
+			case '&':
+			case '|':
+			  s->err = "incorrect filename for input redirection";
+			  goto error;
+			  break;
+			}
 			s->in = words[i++];
 			break;
 		case '>':
@@ -278,11 +288,20 @@ struct cmdline *parsecmd(char **pline)
 				s->err = "filename missing for output redirection";
 				goto error;
 			}
+			switch(words[i][0]){
+			case '<':
+			case '>':
+			case '&':
+			case '|':
+			  s->err = "incorrect filename for output redirection";
+			  goto error;
+			  break;
+			}
 			s->out = words[i++];
 			break;
 		case '&':
 			/* Tricky : the word can only be "&" */
-			if (cmd_len == 0) {
+			if (cmd_len == 0 || words[i] != 0) {
 				s->err = "misplaced ampersand";
 				goto error;
 			}
@@ -298,7 +317,19 @@ struct cmdline *parsecmd(char **pline)
 				s->err = "misplaced pipe";
 				goto error;
 			}
-
+			if (words[i] == 0) {
+				s->err = "second command missing for pipe redirection";
+				goto error;
+			}
+			switch(words[i][0]){
+			case '<':
+			case '>':
+			case '&':
+			case '|':
+			  s->err = "incorrect pipe usage";
+			  goto error;
+			  break;
+			}
 			seq = xrealloc(seq, (seq_len + 2) * sizeof(char **));
 			seq[seq_len++] = cmd;
 			seq[seq_len] = 0;
@@ -330,6 +361,7 @@ struct cmdline *parsecmd(char **pline)
 error:
 	while ((w = words[i++]) != 0) {
 		switch (w[0]) {
+		case '&':
 		case '<':
 		case '>':
 		case '|':
