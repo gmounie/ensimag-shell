@@ -9,13 +9,18 @@ enable_testing()
 #######
 # Detect presence of minitest using gem
 # install it if not available
+# CentOS7 use ruby 2.0 (2013), minitest > 5.11.3 asks 2.2.
+# try to install 5.11.3 version of minitest if standard version failed
 #######
 execute_process(COMMAND gem which minitest RESULT_VARIABLE GEM_MINITEST)
 if (NOT ${GEM_MINITEST} EQUAL 0)
   execute_process(COMMAND gem install minitest RESULT_VARIABLE GEM_MINITEST_INSTALL)
   if (NOT ${GEM_MINITEST_INSTALL} EQUAL 0)
-    message(FATAL_ERROR "Ruby: gem: minitest unavailable and uninstallable")
-  endif ()
+      execute_process(COMMAND gem install minitest --version 5.11.3 RESULT_VARIABLE GEM_MINITEST_INSTALL_OLD)
+      if (NOT ${GEM_MINITEST_INSTALL_OLD} EQUAL 0)
+	message(FATAL_ERROR "Ruby: gem: minitest unavailable and uninstallable")
+      endif ()
+    endif ()
 endif ()
 
 #######
