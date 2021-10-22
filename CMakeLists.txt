@@ -25,6 +25,10 @@ if (VARIANTE_SUJET EQUAL -1)
   message(FATAL_ERROR "** ERREUR **: Vous devez modifier CMakeLists.txt pour y mettre le numéro de votre variante du sujet")
 endif()
 
+# Use the 2017-2018 C standard with GNU extensions ("99" instead
+# should work too with this skeleton)
+set(CMAKE_C_STANDARD 17)
+
 #######
 # Detect presence of minitest using gem
 # install it if not available
@@ -75,10 +79,8 @@ endif()
 
 
 # Debug build
-# Use the last C standard with GNU extensions ("-std=gnu99" instead
-# should work too with this skeleton)
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${GUILE_CFLAGS} -Wall -Werror -std=gnu17")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${GUILE_CFLAGS} -Wall -Werror")
 
 
 #########
