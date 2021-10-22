@@ -6,6 +6,24 @@ endif(COMMAND cmake_policy)
 project(Ensishell)
 enable_testing()
 
+#########
+# Gestion des équipes et variante du sujet / Team management and addition
+#########
+# Vous devez editer les deux lignes SET suivantes pour y mettre vos logins
+# et le numéro de la variante que vous avez choisi
+#########
+set(VARIANTE_LOGINS login1 login2 login3)
+set(VARIANTE_SUJET -1)
+### FIN de la zone à éditer / END of the two line area to edit
+
+list(SORT VARIANTE_LOGINS)
+if (VARIANTE_LOGINS MATCHES "login[123]")
+  message(FATAL_ERROR "** ERREUR **: Vous devez modifier CMakeLists.txt pour y mettre vos logins")
+endif()
+if (VARIANTE_SUJET EQUAL -1)
+  message(FATAL_ERROR "** ERREUR **: Vous devez modifier CMakeLists.txt pour y mettre le numéro de votre variante du sujet")
+endif()
+
 #######
 # Detect presence of minitest using gem
 # install it if not available
@@ -24,32 +42,19 @@ if (NOT ${GEM_MINITEST} EQUAL 0)
 endif ()
 
 #######
-# Detect Guile en utilisant pkg-config
-# Si guile est desactivé dans ensishell.c vous pouvez commenter les lignes
-#####
-# Guile 2.0 by default
+# Detect Guile using guile-config
+# thus use the default "guile"
+# guile-config is available in guile-2.2-dev and guile-3.0-dev
 
-execute_process(COMMAND pkg-config --cflags guile-2.0 OUTPUT_VARIABLE GUILE_PKG_CFLAGS)
-execute_process(COMMAND pkg-config --libs guile-2.0 OUTPUT_VARIABLE GUILE_PKG_LDFLAGS)
+execute_process(COMMAND guile-config compile OUTPUT_VARIABLE GUILE_CFLAGS)
+execute_process(COMMAND guile-config link OUTPUT_VARIABLE GUILE_LDFLAGS)
+string(STRIP ${GUILE_CFLAGS} GUILE_CFLAGS)
+string(STRIP ${GUILE_LDFLAGS} GUILE_LDFLAGS)
 
-# Guile 1.8 if guile 2.0 is not available
-if ("${GUILE_PKG_LDFLAGS}" STREQUAL "")
-  execute_process(COMMAND pkg-config --cflags guile-1.8 OUTPUT_VARIABLE GUILE_PKG_CFLAGS)
-  execute_process(COMMAND pkg-config --libs guile-1.8 OUTPUT_VARIABLE GUILE_PKG_LDFLAGS)
-endif()
-
-# aucun Guile n'a été trouvé
-if (NOT "${GUILE_PKG_LDFLAGS}" STREQUAL "")
-  set(USE_GUILE 1)
-  string(STRIP ${GUILE_PKG_CFLAGS} GUILE_CFLAGS)
-  string(STRIP ${GUILE_PKG_LDFLAGS} GUILE_LDFLAGS)
-
-  # Ensimag debug: if libltld.so is required but not there, put explicit path
-  find_library(LIBLTDL ltdl)
-  if (${GUILE_LDFLAGS} MATCHES "-lltdl" AND NOT ${LIBLTDL})
-    string(REPLACE "-lltdl" "/usr/lib64/libltdl.so.7" GUILE_LDFLAGS ${GUILE_LDFLAGS})
-  endif()
-else()
+# If libguile is apparently not available
+set(USE_GUILE 1)
+if ("${GUILE_LDFLAGS}" STREQUAL "")
+  message(WARN_ERROR "Guile seems unvailable")
   set(USE_GUILE 0)
 endif()
 
@@ -71,23 +76,10 @@ endif()
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${GUILE_CFLAGS} -Wall -Werror -std=gnu99")
 
+
 #########
 # Gestion des variantes
 #########
-# Vous devez editer les lignes suivantes pour y mettre vos logins
-# et le numéro de la variante que vous avez choisi
-#########
-set(VARIANTE_LOGINS login1 login2 login3)
-set(VARIANTE_SUJET -1)
-###
-list(SORT VARIANTE_LOGINS)
-if (VARIANTE_LOGINS MATCHES "login[123]")
-  message(FATAL_ERROR "** ERREUR **: Vous devez modifier CMakeLists.txt pour y mettre vos logins")
-endif()
-if (VARIANTE_SUJET EQUAL -1)
-  message(FATAL_ERROR "** ERREUR **: Vous devez modifier CMakeLists.txt pour y mettre le numéro de votre variante du sujet")
-endif()
-
 configure_file (
   src/variante.h.in
   ${CMAKE_SOURCE_DIR}/src/variante.h
