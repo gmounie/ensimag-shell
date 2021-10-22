@@ -1,7 +1,8 @@
-cmake_minimum_required(VERSION 2.6)
-if(COMMAND cmake_policy)
-  cmake_policy(SET CMP0003 NEW)
-endif(COMMAND cmake_policy)
+cmake_minimum_required(VERSION 3.10)
+####
+# The version number in previous line may be reduced if needed. I used
+# the default in cmake tutorial (oct 2021)
+####
 
 project(Ensishell)
 enable_testing()
@@ -46,15 +47,17 @@ endif ()
 # thus use the default "guile"
 # guile-config is available in guile-2.2-dev and guile-3.0-dev
 
-execute_process(COMMAND guile-config compile OUTPUT_VARIABLE GUILE_CFLAGS)
-execute_process(COMMAND guile-config link OUTPUT_VARIABLE GUILE_LDFLAGS)
-string(STRIP ${GUILE_CFLAGS} GUILE_CFLAGS)
-string(STRIP ${GUILE_LDFLAGS} GUILE_LDFLAGS)
+execute_process(COMMAND guile-config compile
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  OUTPUT_VARIABLE GUILE_CFLAGS)
+execute_process(COMMAND guile-config link
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  OUTPUT_VARIABLE GUILE_LDFLAGS)
 
-# If libguile is apparently not available
+# If libguile is apparently not available, disable SCHEME support
 set(USE_GUILE 1)
 if ("${GUILE_LDFLAGS}" STREQUAL "")
-  message(WARN_ERROR "Guile seems unvailable")
+  message(WARNING "*** libguile seems unvailable, disabling SCHEME support ***")
   set(USE_GUILE 0)
 endif()
 
@@ -72,9 +75,10 @@ endif()
 
 
 # Debug build
-
+# Use the last C standard with GNU extensions ("-std=gnu99" instead
+# should work too with this skeleton)
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${GUILE_CFLAGS} -Wall -Werror -std=gnu99")
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${GUILE_CFLAGS} -Wall -Werror -std=gnu17")
 
 
 #########
@@ -84,7 +88,6 @@ configure_file (
   src/variante.h.in
   ${CMAKE_SOURCE_DIR}/src/variante.h
 )
-
 #########
 # Fin de gestion des variantes
 #########
