@@ -25,21 +25,26 @@ class Test1ForkExec < Minitest::Test
   test_order=:defined
 
   def setup
-    @pty_read, @pty_write, @pty_pid = PTY.spawn(COMMANDESHELL)
+    @pty_read, @pty_write = PTY.open
+    @pipe_read, @pipe_write = IO.pipe
+    @pid = spawn(COMMANDESHELL, :in=>@pipe_read, :out=>@pty_write)
+    @pipe_read.close
+    @pty_write.close
   end
 
   def teardown
-    # ne rien faire
+    @pty_write.close
+    @pipe_write.close
   end
 
   def test_seq
-    @pty_write.puts("seq 0 3")
+    @pipe_write.puts("seq 0 3")
     a = @pty_read.expect(/0\r\n1\r\n2\r\n3/m, DELAI)
     refute_nil(a, "Sortie incohérente pour 'seq 0 3'")
   end
 
   def test_printf
-    @pty_write.puts("printf 'toto%dtoto' 10")
+    @pipe_write.puts("printf 'toto%dtoto' 10")
     a = @pty_read.expect(/toto10toto/, DELAI)
     refute_nil(a, "Sortie incohérente pour 'seq 0 3'")
   end
