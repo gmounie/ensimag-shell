@@ -10,19 +10,21 @@ enable_testing()
 #########
 # Gestion des équipes et variante du sujet / Team management and addition
 #########
-# Vous devez editer les deux lignes SET suivantes pour y mettre vos logins
+# Vous devez editer la lignes SET suivante pour y mettre vos logins
 # et le numéro de la variante que vous avez choisi
 #########
-set(VARIANTE_LOGINS login1 login2 login3)
-set(VARIANTE_SUJET -1)
+set(VARIANTE_SUJET 1)
 ### FIN de la zone à éditer / END of the two line area to edit
 
-list(SORT VARIANTE_LOGINS)
-if (VARIANTE_LOGINS MATCHES "login[123]")
-  message(FATAL_ERROR "** ERREUR **: Vous devez modifier CMakeLists.txt pour y mettre vos logins")
-endif()
 if (VARIANTE_SUJET EQUAL -1)
-  message(FATAL_ERROR "** ERREUR **: Vous devez modifier CMakeLists.txt pour y mettre le numéro de votre variante du sujet")
+  message(FATAL_ERROR "** ERREUR **: Vous devez modifier le CMakeLists.txt pour y mettre le numéro de votre variante du sujet / Edit VARIANTE_SUJET in the CMakeList")
+endif()
+
+if (EXISTS ${CMAKE_SOURCE_DIR}/AUTHORS)
+  message(STATUS "Les auteurs du TP incrits dans AUTHORS sont / AUTHORS are:")
+  execute_process (COMMAND cat AUTHORS WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+else()
+  message(FATAL_ERROR "** ERREUR / ERROR **: Vous devez mettre vos prénoms, noms et login dans un fichier nommé 'AUTHORS' à la racine du projet / Add an 'AUTHORS' file with all authors' name, firstname and login at the project root; Fichier manquant/missing file: "  ${CMAKE_SOURCE_DIR}/AUTHORS)
 endif()
 
 # Use the 2017-2018 C standard with GNU extensions ("99" instead
@@ -104,20 +106,23 @@ target_link_libraries(ensishell ${READLINE_LDFLAGS} ${GUILE_LDFLAGS})
 ##
 # Programme de test
 ##
-add_test(UnitShellTests ../tests/allShellTests.rb)
+add_test(UnitShellTests ${CMAKE_SOURCE_DIR}/tests/allShellTests.rb)
 
 ##
 # Ajout d'une cible pour lancer les tests de manière verbeuse
 ##
-add_custom_target(check ../tests/allShellTests.rb)
+add_custom_target(check ${CMAKE_SOURCE_DIR}/tests/allShellTests.rb)
 
 ##
 # Construction de l'archive
 ##
-string(REPLACE ";" "-" LOGINS_SANS_POINTVIRGULE "${VARIANTE_LOGINS}")
-set(CPACK_PACKAGE_VERSION_MAJOR "1")
-set(CPACK_PACKAGE_VERSION_MINOR "0")
-set(CPACK_PACKAGE_VERSION_PATCH ${LOGINS_SANS_POINTVIRGULE})
+execute_process(COMMAND cat AUTHORS WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE AUTHOR_LIST)
+string(STRIP "${AUTHOR_LIST}" AUTHOR_LIST)
+string(MAKE_C_IDENTIFIER "${AUTHOR_LIST}" AUTHOR_LIST)
+
+set(CPACK_PACKAGE_VERSION_MAJOR "2")
+set(CPACK_PACKAGE_VERSION_MINOR "${VARIANTE_SUJET}")
+set(CPACK_PACKAGE_VERSION_PATCH "0-${AUTHOR_LIST}")
 set(CPACK_SOURCE_GENERATOR "TGZ")
 set(CPACK_SOURCE_IGNORE_FILES
   "~$"
