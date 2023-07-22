@@ -13,7 +13,7 @@ enable_testing()
 # Vous devez editer la lignes SET suivante pour y mettre vos logins
 # et le numéro de la variante que vous avez choisi
 #########
-set(VARIANTE_SUJET 1)
+set(VARIANTE_SUJET -1)
 ### FIN de la zone à éditer / END of the two line area to edit
 
 if (VARIANTE_SUJET EQUAL -1)
@@ -84,6 +84,10 @@ endif()
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${GUILE_CFLAGS} -Wall -Werror")
 
+# Nom des auteurs comme un identifiant C (monoligne alpha)
+execute_process(COMMAND cat AUTHORS WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE AUTHOR_LIST)
+string(STRIP "${AUTHOR_LIST}" AUTHOR_LIST)
+string(MAKE_C_IDENTIFIER "${AUTHOR_LIST}" AUTHOR_LIST)
 
 #########
 # Gestion des variantes
@@ -116,9 +120,6 @@ add_custom_target(check ${CMAKE_SOURCE_DIR}/tests/allShellTests.rb)
 ##
 # Construction de l'archive
 ##
-execute_process(COMMAND cat AUTHORS WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE AUTHOR_LIST)
-string(STRIP "${AUTHOR_LIST}" AUTHOR_LIST)
-string(MAKE_C_IDENTIFIER "${AUTHOR_LIST}" AUTHOR_LIST)
 
 set(CPACK_PACKAGE_VERSION_MAJOR "2")
 set(CPACK_PACKAGE_VERSION_MINOR "${VARIANTE_SUJET}")
