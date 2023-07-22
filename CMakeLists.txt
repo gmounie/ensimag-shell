@@ -13,7 +13,7 @@ enable_testing()
 # Vous devez editer la lignes SET suivante pour y mettre vos logins
 # et le numéro de la variante que vous avez choisi
 #########
-set(VARIANTE_SUJET -1)
+set(VARIANTE_SUJET 10)
 ### FIN de la zone à éditer / END of the two line area to edit
 
 if (VARIANTE_SUJET EQUAL -1)

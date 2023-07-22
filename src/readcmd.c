@@ -143,6 +143,7 @@ static char **split_in_words(char *line)
 {
 	char *cur = line;
 	char *buf = malloc(strlen(line) + 1);
+	if (!buf) memory_error();
 	char *cur_buf;
 	char **tab = 0;
 	size_t l = 0;
