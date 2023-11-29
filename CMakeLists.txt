@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 ####
 # The version number in previous line may be reduced if needed. I used
 # the default in cmake tutorial (oct 2021)
@@ -92,6 +92,7 @@ endif()
 
 
 # Debug build
+set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${GUILE_CFLAGS} -Wall -Wextra")
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
@@ -119,19 +120,19 @@ target_link_libraries(ensishell ${READLINE_LDFLAGS} ${GUILE_LDFLAGS})
 ##
 # Programme de test
 ##
-add_test(UnitShellTests ../tests/allShellTests.rb)
+add_test(UnitShellTests ${CMAKE_SOURCE_DIR}/tests/allShellTests.rb)
 
 ##
 # Ajout d'une cible pour lancer les tests de manière verbeuse
 ##
-add_custom_target(check ../tests/allShellTests.rb)
+add_custom_target(check ${CMAKE_SOURCE_DIR}/tests/allShellTests.rb)
 
 ##
 # Construction de l'archive
 ##
 set(CPACK_PACKAGE_VERSION_MAJOR "2")
-set(CPACK_PACKAGE_VERSION_MINOR "0")
-set(CPACK_PACKAGE_VERSION_PATCH  "0-${AUTHOR_LIST}")
+set(CPACK_PACKAGE_VERSION_MINOR "${VARIANTE_SUJET}")
+set(CPACK_PACKAGE_VERSION_PATCH "0-${AUTHOR_LIST}")
 set(CPACK_SOURCE_GENERATOR "TGZ")
 set(CPACK_SOURCE_IGNORE_FILES
   "~$"
