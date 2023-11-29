@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <string.h>
+#include <assert.h>
 #include "readcmd.h"
 
 static void memory_error(void)
@@ -39,7 +40,7 @@ static void *xrealloc(void *ptr, size_t size)
 
 #if USE_GNU_READLINE == 0
 /* Read a line from standard input and put it in a char[] */
-char *readline(char *prompt)
+char *readline(const char *prompt)
 {
 	size_t buf_len = 16;
 	char *buf = xmalloc(buf_len * sizeof(char));
@@ -109,6 +110,7 @@ static void read_double_quote(char ** cur, char ** cur_buf) {
 }
 
 static void read_word(char ** cur, char ** cur_buf) {
+        assert(*cur_buf != NULL );
 	while(1) {
 		char c = **cur;
 		switch (c) {
