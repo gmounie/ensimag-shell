@@ -12,7 +12,6 @@
 #include <errno.h>
 #include <limits.h>
 #include <string.h>
-#include <assert.h>
 #include "readcmd.h"
 
 static void memory_error(void)
@@ -110,7 +109,6 @@ static void read_double_quote(char ** cur, char ** cur_buf) {
 }
 
 static void read_word(char ** cur, char ** cur_buf) {
-        assert(*cur_buf != NULL );
 	while(1) {
 		char c = **cur;
 		switch (c) {
@@ -144,7 +142,7 @@ static void read_word(char ** cur, char ** cur_buf) {
 static char **split_in_words(char *line)
 {
 	char *cur = line;
-	char *buf = malloc(strlen(line) + 1);
+	char *buf = xmalloc(strlen(line) + 1);
 	char *cur_buf;
 	char **tab = 0;
 	size_t l = 0;
