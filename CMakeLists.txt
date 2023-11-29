@@ -10,24 +10,36 @@ enable_testing()
 #########
 # Gestion des équipes et variante du sujet / Team management and addition
 #########
-# Vous devez editer les deux lignes SET suivantes pour y mettre vos logins
-# et le numéro de la variante que vous avez choisi
+# Vous devez editer la ligne SET suivante pour y mettre le numéro de
+# la variante que vous avez choisi
 #########
-set(VARIANTE_LOGINS login1 login2 login3)
 set(VARIANTE_SUJET -1)
 ### FIN de la zone à éditer / END of the two line area to edit
 
-list(SORT VARIANTE_LOGINS)
-if (VARIANTE_LOGINS MATCHES "login[123]")
-  message(FATAL_ERROR "** ERREUR **: Vous devez modifier CMakeLists.txt pour y mettre vos logins")
-endif()
+
+## Détection de la variante
 if (VARIANTE_SUJET EQUAL -1)
-  message(FATAL_ERROR "** ERREUR **: Vous devez modifier CMakeLists.txt pour y mettre le numéro de votre variante du sujet")
+  message(FATAL_ERROR "** ERREUR / ERROR **: Vous devez modifier le CMakeLists.txt pour y mettre le numéro de votre variante du sujet/ Edit CMakeLists.txt to add your subject variant")
+endif()
+
+## Détection du fichier AUTHORS
+if (EXISTS ${CMAKE_SOURCE_DIR}/AUTHORS)
+  message(STATUS "Les auteurs du TP incrits dans AUTHORS sont / AUTHORS are:")
+  execute_process (COMMAND cat AUTHORS WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+  # Nom des auteurs comme un identifiant C (monoligne alpha)
+  execute_process(COMMAND cat AUTHORS WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE AUTHOR_LIST)
+  string(STRIP "${AUTHOR_LIST}" AUTHOR_LIST)
+  string(MAKE_C_IDENTIFIER "${AUTHOR_LIST}" AUTHOR_LIST)
+else()
+  message(FATAL_ERROR "** ERREUR / ERROR **: Vous devez mettre vos prénoms, noms et login dans un fichier nommé 'AUTHORS' à la racine du projet / Add an 'AUTHORS' file with all authors' name, firstname and login at the project root; Fichier manquant / missing file: "  ${CMAKE_SOURCE_DIR}/AUTHORS)
 endif()
 
 # Use the 2017-2018 C standard with GNU extensions ("99" instead
 # should work too with this skeleton)
 set(CMAKE_C_STANDARD 17)
+# affiche les commandes du makefile par défaut (exposer les étudiants
+# à ce que fait le makefile pour eux)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 #######
 # Detect presence of minitest using gem
@@ -35,13 +47,14 @@ set(CMAKE_C_STANDARD 17)
 # CentOS7 use ruby 2.0 (2013), minitest > 5.11.3 asks 2.2.
 # try to install 5.11.3 version of minitest if standard version failed
 #######
+message(STATUS "Recherche de ruby minitest avec gem / Looking for ruby minitest with gem")
 execute_process(COMMAND gem which minitest RESULT_VARIABLE GEM_MINITEST)
 if (NOT ${GEM_MINITEST} EQUAL 0)
   execute_process(COMMAND gem install minitest RESULT_VARIABLE GEM_MINITEST_INSTALL)
   if (NOT ${GEM_MINITEST_INSTALL} EQUAL 0)
       execute_process(COMMAND gem install minitest --version 5.11.3 RESULT_VARIABLE GEM_MINITEST_INSTALL_OLD)
       if (NOT ${GEM_MINITEST_INSTALL_OLD} EQUAL 0)
-	message(FATAL_ERROR "Ruby: gem: minitest unavailable and uninstallable")
+	message(FATAL_ERROR "Ruby: gem: minitest est indisponible et 5.11.3 n'est pas installable")
       endif ()
     endif ()
 endif ()
@@ -61,7 +74,7 @@ execute_process(COMMAND guile-config link
 # If libguile is apparently not available, disable SCHEME support
 set(USE_GUILE 1)
 if ("${GUILE_LDFLAGS}" STREQUAL "")
-  message(WARNING "*** libguile seems unvailable, disabling SCHEME support ***")
+  message(WARNING "** LIMITATION ** libguile n'est pas installé (ou détecté), désactive GUILE / libguile seems unvailable, disabling SCHEME support")
   set(USE_GUILE 0)
 endif()
 
@@ -80,8 +93,10 @@ endif()
 
 # Debug build
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${GUILE_CFLAGS} -Wall -Werror")
-
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${GUILE_CFLAGS} -Wall -Wextra")
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fanalyzer")
+endif()
 
 #########
 # Gestion des variantes
@@ -114,10 +129,9 @@ add_custom_target(check ../tests/allShellTests.rb)
 ##
 # Construction de l'archive
 ##
-string(REPLACE ";" "-" LOGINS_SANS_POINTVIRGULE "${VARIANTE_LOGINS}")
-set(CPACK_PACKAGE_VERSION_MAJOR "1")
+set(CPACK_PACKAGE_VERSION_MAJOR "2")
 set(CPACK_PACKAGE_VERSION_MINOR "0")
-set(CPACK_PACKAGE_VERSION_PATCH ${LOGINS_SANS_POINTVIRGULE})
+set(CPACK_PACKAGE_VERSION_PATCH  "0-${AUTHOR_LIST}")
 set(CPACK_SOURCE_GENERATOR "TGZ")
 set(CPACK_SOURCE_IGNORE_FILES
   "~$"
