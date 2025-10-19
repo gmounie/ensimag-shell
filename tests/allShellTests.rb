@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 
 # Copyright (C) 2013 Gregory Mounie
 # This program is free software: you can redistribute it and/or modify
