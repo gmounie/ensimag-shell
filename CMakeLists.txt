@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.25)
 ####
 # The version number in previous line may be reduced if needed. I used
 # the default in cmake tutorial (oct 2021)
@@ -6,6 +6,9 @@ cmake_minimum_required(VERSION 3.20)
 
 project(Ensishell)
 enable_testing()
+
+# Use the 2023 C standard with reasonable warning flags
+set(CMAKE_C_FLAGS "-Wall -Wextra -std=c23")
 
 #########
 # Gestion des équipes et variante du sujet / Team management and addition
@@ -34,9 +37,6 @@ else()
   message(FATAL_ERROR "** ERREUR / ERROR **: Vous devez mettre vos prénoms, noms et login dans un fichier nommé 'AUTHORS' à la racine du projet / Add an 'AUTHORS' file with all authors' name, firstname and login at the project root; Fichier manquant / missing file: "  ${CMAKE_SOURCE_DIR}/AUTHORS)
 endif()
 
-# Use the 2017-2018 C standard with GNU extensions ("99" instead
-# should work too with this skeleton)
-set(CMAKE_C_STANDARD 17)
 # affiche les commandes du makefile par défaut (exposer les étudiants
 # à ce que fait le makefile pour eux)
 set(CMAKE_VERBOSE_MAKEFILE ON)
@@ -92,30 +92,49 @@ endif()
 
 
 # Debug build
-set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${GUILE_CFLAGS} -Wall -Wextra")
-if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fanalyzer")
-endif()
 
 #########
 # Gestion des variantes
 #########
 configure_file (
-  src/variante.h.in
-  ${CMAKE_SOURCE_DIR}/src/variante.h
+  include/variante.h.in
+  ${CMAKE_SOURCE_DIR}/include/variante.h
 )
 #########
 # Fin de gestion des variantes
 #########
 
+
+separate_arguments(_GUILE_CFLAGS UNIX_COMMAND "${GUILE_CFLAGS}")
+
+set(_GUILE_INCLUDE_DIRS)
+foreach(flag IN LISTS _GUILE_CFLAGS)
+  if(flag MATCHES "^-I(.+)")
+    list(APPEND _GUILE_INCLUDE_DIRS "${CMAKE_MATCH_1}")
+  endif()
+endforeach()
+
 ##
 # Si vous utilisez plusieurs fichiers, en plus de ensishell.c, pour votre
 # shell il faut les ajouter ici
 ##
-add_executable(ensishell src/readcmd.c src/ensishell.c)
-target_link_libraries(ensishell ${READLINE_LDFLAGS} ${GUILE_LDFLAGS})
+add_executable(ensishell
+        src/readcmd.c
+        src/ensishell.c
+)
+target_include_directories(ensishell PRIVATE
+        include/
+        ${_GUILE_INCLUDE_DIRS})
+target_compile_options(ensishell PRIVATE
+        -Wall
+        -Wextra
+        $<$<C_COMPILER_ID:GNU>:-fanalyzer>
+        $<$<C_COMPILER_ID:Clang>:-Xanalyzer>
+        $<$<CONFIG:DEBUG>:-g3>
+        $<$<CONFIG:RELEASE>:-O2>
+)
+target_link_libraries(ensishell PRIVATE ${READLINE_LDFLAGS} ${GUILE_LDFLAGS} )
 
 ##
 # Programme de test
