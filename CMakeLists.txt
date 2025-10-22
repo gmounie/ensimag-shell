@@ -122,6 +122,9 @@ endforeach()
 add_executable(ensishell
         src/readcmd.c
         src/ensishell.c
+        src/tokenizer.c
+        src/parser.c
+        src/memory_utils.c
 )
 target_include_directories(ensishell PRIVATE
         include/

@@ -11,6 +11,7 @@
 
 #include "variante.h"
 #include "readcmd.h"
+#include "parser.h"
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__!=202311L
 #include <stdbool.h>
@@ -116,36 +117,32 @@ int main()
 #endif
 
         /* parsecmd free line and set it up to 0 */
-        struct cmdline *l = parsecmd(&line);
+        Command *commands = parse_commands(line);
 
-        /* If input stream closed, normal termination */
-        if (!l) {
-            CLEAR_HISTORY;
-            puts("exit");
-            return 0;
-        }
-
-        if (l->err) {
+        if (!commands) {
             /* Syntax error, read another command */
-            printf("error: %s\n", l->err);
             continue;
         }
 
-        if (l->in)
-            printf("in: %s\n", l->in);
-        if (l->out)
-            printf("out: %s\n", l->out);
-        if (l->bg)
+        if (commands->in.file)
+            printf("in: %s\n", commands->in.file);
+        if (commands->out.file)
+            printf("out: %s\n", commands->out.file);
+        if (commands->background)
             printf("background (&)\n");
 
         /* Display each command of the pipe */
-        for (size_t i = 0; l->seq[i] != nullptr; i++) {
-            char **cmd = l->seq[i];
-            printf("seq[%lu]: ", i);
-            for (size_t j = 0; cmd[j] != nullptr; j++) {
-                printf("'%s' ", cmd[j]);
+        Command *cmd = commands;
+        size_t command_nb = 0;
+        while (cmd) {
+            printf("Command[%lu]: ", command_nb);
+            for (size_t i = 0; i < cmd->argc; i++) {
+                printf("'%s' ", cmd->argv[i]);
             }
             printf("\n");
+            command_nb++;
+            cmd = cmd->next_link.next_command;
         }
+        free_command_list(commands);
     }
 }
