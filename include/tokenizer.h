@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#if defined(__STDC_VERSION__) && __STDC_VERSION__!=202311L
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ != 202311L
 #include <stdbool.h>
 #ifndef nullptr
 #define nullptr NULL

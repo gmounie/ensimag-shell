@@ -2,7 +2,7 @@
 
 #include <stddef.h>
 
-#if defined(__STDC_VERSION__) && __STDC_VERSION__!=202311L
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ != 202311L
 #include <stdbool.h>
 #ifndef nullptr
 #define nullptr NULL
@@ -23,12 +23,7 @@ typedef enum {
     HEREDOC_IN,
 } IOTypeIn;
 
-typedef enum {
-    RELATION_NONE,
-    RELATION_PIPE,
-    RELATION_AND,
-    RELATION_OR
-} CommandRelation;
+typedef enum { RELATION_NONE, RELATION_PIPE, RELATION_AND, RELATION_OR } CommandRelation;
 
 typedef struct command Command;
 

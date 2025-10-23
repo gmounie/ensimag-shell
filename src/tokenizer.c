@@ -21,7 +21,7 @@ static void fill_token(Token *token, TokenType type, char *value)
     token->value = value;
 }
 
-static void add_operation_token(Token *token, const char *line, size_t *pos)
+static void read_operation_token(Token *token, const char *line, size_t *pos)
 {
     if (strncmp(line + *pos, "&&", 2) == 0) {
         fill_token(token, TOKEN_AND, nullptr);
@@ -55,7 +55,7 @@ static void add_operation_token(Token *token, const char *line, size_t *pos)
         return;
     }
     if (line[*pos] == ';') {
-        fill_token(token, TOKEN_SEMICOLON,nullptr);
+        fill_token(token, TOKEN_SEMICOLON, nullptr);
         (*pos)++;
         return;
     }
@@ -81,7 +81,8 @@ static void put_char_in_word_buffer(char **buffer, size_t *alloc_size, size_t *p
     (*pos)++;
 }
 
-static void quoted_string(const char *line, size_t *pos, char **word_buffer, size_t *alloc_size, size_t *buffer_pos, const size_t line_len)
+static void quoted_string(const char *line, size_t *pos, char **word_buffer, size_t *alloc_size, size_t *buffer_pos,
+                          const size_t line_len)
 {
     char quote_char = line[*pos];
     size_t end_quote_pos = *pos + 1;
@@ -111,15 +112,14 @@ static void quoted_string(const char *line, size_t *pos, char **word_buffer, siz
     (*word_buffer)[*buffer_pos] = '\0';
 
     *pos = (end_quote_pos < line_len) ? end_quote_pos + 1 : line_len;
-
 }
 
 static void regular_word(const char *line, size_t *pos, char **word_buffer, size_t *alloc_size, size_t *buffer_pos)
 {
     size_t word_end = *pos;
     bool escaped = false;
-    while (line[word_end] && (escaped || (!isspace(line[word_end]) && !is_shell_operator(line[word_end]) && !is_quote(line[word_end])))) {
-
+    while (line[word_end] &&
+           (escaped || (!isspace(line[word_end]) && !is_shell_operator(line[word_end]) && !is_quote(line[word_end])))) {
         if (!escaped && line[word_end] == '\\') {
             escaped = true;
             word_end++;
@@ -136,7 +136,7 @@ static void regular_word(const char *line, size_t *pos, char **word_buffer, size
     *pos = word_end;
 }
 
-static void add_word_token(Token *token, const char *line, size_t *pos)
+static void read_word_token(Token *token, const char *line, size_t *pos)
 {
     const size_t line_len = strlen(line);
     size_t alloc_size = 32;
@@ -168,9 +168,9 @@ uint8_t next_token(Token *token, const char *line, size_t *pos)
     }
 
     if (is_shell_operator(line[*pos])) {
-        add_operation_token(token, line, pos);
+        read_operation_token(token, line, pos);
     } else {
-        add_word_token(token, line, pos);
+        read_word_token(token, line, pos);
     }
     return 0;
 }

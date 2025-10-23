@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <errno.h>
 
-static void memory_error(void)
+void memory_error(void)
 {
-    errno = ENOMEM;
+    // Errno is already set by malloc / realloc
     perror(nullptr);
     exit(1);
 }

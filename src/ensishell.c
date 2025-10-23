@@ -13,7 +13,7 @@
 #include "readcmd.h"
 #include "parser.h"
 
-#if defined(__STDC_VERSION__) && __STDC_VERSION__!=202311L
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ != 202311L
 #include <stdbool.h>
 #ifndef nullptr
 #define nullptr NULL
@@ -61,6 +61,8 @@ SCM executer_wrapper(SCM x)
     return scm_from_int(question6_executer(scm_to_locale_stringn(x, nullptr)));
 }
 #endif
+
+char *rels[4] = { "NONE", "PIPE", "AND", "OR" };
 
 /*
 void terminate(char *line)
@@ -120,16 +122,10 @@ int main()
         Command *commands = parse_commands(line);
 
         if (!commands) {
+            free(line);
             /* Syntax error, read another command */
             continue;
         }
-
-        if (commands->in.file)
-            printf("in: %s\n", commands->in.file);
-        if (commands->out.file)
-            printf("out: %s\n", commands->out.file);
-        if (commands->background)
-            printf("background (&)\n");
 
         /* Display each command of the pipe */
         Command *cmd = commands;
@@ -140,9 +136,17 @@ int main()
                 printf("'%s' ", cmd->argv[i]);
             }
             printf("\n");
+            if (cmd->in.file)
+                printf("type: %d -- in: %s\n", cmd->in.type, cmd->in.file);
+            if (cmd->out.file)
+                printf("type: %d -- out: %s\n", cmd->out.type, cmd->out.file);
+            if (cmd->background)
+                printf("background (&)\n");
+            printf("Relation with next: %s\n", rels[cmd->next_link.type]);
             command_nb++;
             cmd = cmd->next_link.next_command;
         }
         free_command_list(commands);
+        free(line);
     }
 }

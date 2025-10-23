@@ -47,10 +47,12 @@ void free_command_list(Command *commands)
 static void allocate_command(struct command_wrapper *wrapper)
 {
     Command *cmd = xmalloc(sizeof(Command));
-    // Avoid allocating too much memory for no arg / few args commands (< 4)
-    size_t argv_allocated_size = 1;
-    cmd->argv = xmalloc(sizeof(char*) * argv_allocated_size);
-    cmd->argv[0] = nullptr;
+    // Avoid allocating too much memory for no arg / few args commands
+    size_t argv_allocated_size = 4;
+    cmd->argv = xmalloc(sizeof(char *) * argv_allocated_size);
+    for (size_t i = 0; i < argv_allocated_size; i++) {
+        cmd->argv[i] = nullptr;
+    }
     wrapper->command = cmd;
     wrapper->argv_allocated_size = argv_allocated_size;
     wrapper->command->argc = 0;
@@ -69,7 +71,7 @@ static void add_to_argv(struct command_wrapper *wrapper, char *arg)
 {
     if (wrapper->command->argc + 1 >= wrapper->argv_allocated_size) {
         wrapper->argv_allocated_size <<= 1;
-        wrapper->command->argv = xrealloc(wrapper->command->argv, sizeof(char*) * wrapper->argv_allocated_size);
+        wrapper->command->argv = xrealloc(wrapper->command->argv, sizeof(char *) * wrapper->argv_allocated_size);
     }
     wrapper->command->argv[wrapper->command->argc] = arg;
     wrapper->command->argv[wrapper->command->argc + 1] = nullptr;
@@ -91,12 +93,12 @@ Command *parse_commands(const char *line)
     if (!line || !*line) {
         return nullptr;
     }
-    struct command_wrapper wrapper = {nullptr, 0};
+    struct command_wrapper wrapper = { nullptr, 0 };
     allocate_command(&wrapper);
     Command *head = wrapper.command;
 
     size_t pos = 0;
-    Token token = {TOKEN_NONE, nullptr};
+    Token token = { TOKEN_NONE, nullptr };
     CommandRelation previous_command_relation = RELATION_NONE;
 
     while (true) {
@@ -119,7 +121,7 @@ Command *parse_commands(const char *line)
                 return parser_error(head, &token, "Syntax error: Cannot have two input streams for a single command");
             }
             IOTypeIn in_type = (token.type == TOKEN_REDIR_IN) ? FILE_IN : HEREDOC_IN;
-            Token in_file_token = {TOKEN_NONE, nullptr};
+            Token in_file_token = { TOKEN_NONE, nullptr };
             if (next_token(&in_file_token, line, &pos) != 0 || in_file_token.type != TOKEN_WORD) {
                 free(in_file_token.value);
                 return parser_error(head, &token, "Syntax error: Expected filename or delimiter after redirection");
@@ -134,7 +136,7 @@ Command *parse_commands(const char *line)
                 return parser_error(head, &token, "Syntax error: Cannot have two output streams for a single command");
             }
             IOTypeOut out_type = (token.type == TOKEN_REDIR_OUT) ? FILE_OUT : APPEND_OUT;
-            Token out_file_token = {TOKEN_NONE, nullptr};
+            Token out_file_token = { TOKEN_NONE, nullptr };
             if (next_token(&out_file_token, line, &pos) != 0 || out_file_token.type != TOKEN_WORD) {
                 free(out_file_token.value);
                 return parser_error(head, &token, "Syntax error: Expected filename after redirection");
@@ -153,7 +155,8 @@ Command *parse_commands(const char *line)
             }
             if (token.type == TOKEN_PIPE) {
                 if (wrapper.command->out.type != INHERITS_OUT) {
-                    return parser_error(head, &token, "Syntax error: Cannot have two output streams for a single command");
+                    return parser_error(head, &token,
+                                        "Syntax error: Cannot have two output streams for a single command");
                 }
                 wrapper.command->out.type = PIPE_OUT;
                 wrapper.command->next_link.type = RELATION_PIPE;
@@ -166,7 +169,7 @@ Command *parse_commands(const char *line)
                 wrapper.command->background = true;
             }
             // Link commands
-            struct command_wrapper new_wrapper = {nullptr, 0};
+            struct command_wrapper new_wrapper = { nullptr, 0 };
             allocate_command(&new_wrapper);
             wrapper.command->next_link.next_command = new_wrapper.command;
 
@@ -205,10 +208,7 @@ Command *parse_commands(const char *line)
             break;
         }
     }
-    parsing_loop_end:
+parsing_loop_end:
     free(token.value);
     return head;
 }
-
-
-
