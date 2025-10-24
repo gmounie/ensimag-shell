@@ -21,3 +21,8 @@
 
 # ignore build directory
 build/
+cmake-build-*/
+
+# ignore IDE files
+.idea/
+.vscode/
